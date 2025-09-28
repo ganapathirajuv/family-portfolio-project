@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Portfolio</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <h1 class="logo">
+                <i class="fas fa-home"></i>
+                Family Portfolio
+            </h1>
+            <ul class="nav-links">
+                <li><a href="#home" data-section="home" class="nav-link active">Home</a></li>
+                <li><a href="#family-tree" data-section="family-tree" class="nav-link">Family Tree</a></li>
+                <li><a href="#documents" data-section="documents" class="nav-link">Documents</a></li>
+                <li><a href="#photos" data-section="photos" class="nav-link">Photo Gallery</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <!-- Home Section -->
+        <section id="home" class="section active">
+            <div class="hero">
+                <h2>Welcome to Our Family Portfolio</h2>
+                <p>Preserve memories, organize documents, and explore our family heritage</p>
+                <div class="feature-cards">
+                    <div class="card">
+                        <i class="fas fa-sitemap"></i>
+                        <h3>Family Tree</h3>
+                        <p>Explore our family relationships and genealogy</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Documents</h3>
+                        <p>Access important family documents and records</p>
+                    </div>
+                    <div class="card">
+                        <i class="fas fa-images"></i>
+                        <h3>Photo Gallery</h3>
+                        <p>Browse our collection of cherished family photos</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Family Tree Section -->
+        <section id="family-tree" class="section">
+            <h2>Family Tree</h2>
+            <div class="family-tree-container">
+                <div class="tree-controls">
+                    <button id="add-member-btn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Add Family Member
+                    </button>
+                    <button id="reset-tree-btn" class="btn-secondary">
+                        <i class="fas fa-refresh"></i> Reset View
+                    </button>
+                </div>
+                <div id="family-tree-viz" class="family-tree-visualization">
+                    <!-- Family tree will be dynamically generated here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Documents Section -->
+        <section id="documents" class="section">
+            <h2>Family Documents</h2>
+            <div class="documents-container">
+                <div class="document-upload">
+                    <div class="upload-area" id="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag & drop documents here or click to browse</p>
+                        <input type="file" id="document-input" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.png">
+                    </div>
+                </div>
+                <div class="documents-list">
+                    <h3>Uploaded Documents</h3>
+                    <div id="documents-grid" class="documents-grid">
+                        <!-- Documents will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Photos Section -->
+        <section id="photos" class="section">
+            <h2>Family Photo Gallery</h2>
+            <div class="photos-container">
+                <div class="photo-upload">
+                    <div class="upload-area" id="photo-upload-area">
+                        <i class="fas fa-camera"></i>
+                        <p>Add new family photos</p>
+                        <input type="file" id="photo-input" multiple accept="image/*">
+                    </div>
+                </div>
+                <div class="photo-gallery">
+                    <div class="gallery-filters">
+                        <button class="filter-btn active" data-filter="all">All Photos</button>
+                        <button class="filter-btn" data-filter="events">Events</button>
+                        <button class="filter-btn" data-filter="portraits">Portraits</button>
+                        <button class="filter-btn" data-filter="vacations">Vacations</button>
+                    </div>
+                    <div id="photo-grid" class="photo-grid">
+                        <!-- Photos will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for adding family members -->
+    <div id="family-member-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Add Family Member</h3>
+            <form id="family-member-form">
+                <div class="form-group">
+                    <label for="member-name">Name:</label>
+                    <input type="text" id="member-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="member-relation">Relation:</label>
+                    <select id="member-relation" required>
+                        <option value="">Select relation</option>
+                        <option value="parent">Parent</option>
+                        <option value="spouse">Spouse</option>
+                        <option value="child">Child</option>
+                        <option value="sibling">Sibling</option>
+                        <option value="grandparent">Grandparent</option>
+                        <option value="grandchild">Grandchild</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="member-birth-year">Birth Year:</label>
+                    <input type="number" id="member-birth-year" min="1900" max="2024">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Member</button>
+                    <button type="button" class="btn-secondary" id="cancel-member">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo viewer modal -->
+    <div id="photo-modal" class="modal">
+        <div class="modal-content photo-modal-content">
+            <span class="close">&times;</span>
+            <img id="modal-photo" src="" alt="">
+            <div class="photo-info">
+                <h4 id="photo-title"></h4>
+                <p id="photo-description"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="scripts/main.js"></script>
+    <script src="scripts/family-tree.js"></script>
+    <script src="scripts/documents.js"></script>
+    <script src="scripts/photos.js"></script>
+</body>
+</html>
