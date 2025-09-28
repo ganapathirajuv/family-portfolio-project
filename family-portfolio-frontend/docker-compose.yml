@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: family_portfolio_frontend
+    environment:
+      REACT_APP_API_URL: ${API_BASE_URL:-http://localhost:8000}/api/v1
+      REACT_APP_UPLOAD_URL: ${API_BASE_URL:-http://localhost:8000}/uploads
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - family_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  family_network:
+    external: true

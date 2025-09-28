@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: family_portfolio_backend
+    environment:
+      # Application settings
+      ENVIRONMENT: "${ENVIRONMENT:-development}"
+      DEBUG: "${DEBUG:-true}"
+      APP_NAME: "Family Portfolio API"
+      APP_VERSION: "2.0.0"
+      HOST: "0.0.0.0"
+      PORT: "8000"
+      
+      # Database settings (flat format for compatibility)
+      DATABASE_URL: "${DATABASE_URL:-postgresql://portfolio_admin:secure_password_123@family_portfolio_database:5432/family_portfolio}"
+      DATABASE_ECHO: "${DATABASE_ECHO:-false}"
+      DATABASE_POOL_SIZE: "${DATABASE_POOL_SIZE:-10}"
+      DATABASE_MAX_OVERFLOW: "${DATABASE_MAX_OVERFLOW:-20}"
+      DATABASE_POOL_TIMEOUT: "${DATABASE_POOL_TIMEOUT:-30}"
+      DATABASE_POOL_RECYCLE: "${DATABASE_POOL_RECYCLE:-3600}"
+      
+      # Security settings (flat format for compatibility)
+      SECRET_KEY: "${SECRET_KEY:-your-super-secret-key-change-in-production-make-it-longer-than-32-characters}"
+      ALGORITHM: "${JWT_ALGORITHM:-HS256}"
+      ACCESS_TOKEN_EXPIRE_MINUTES: "${ACCESS_TOKEN_EXPIRE_MINUTES:-43200}"
+      PASSWORD_MIN_LENGTH: "${PASSWORD_MIN_LENGTH:-8}"
+      MAX_LOGIN_ATTEMPTS: "${MAX_LOGIN_ATTEMPTS:-5}"
+      LOCKOUT_DURATION_MINUTES: "${LOCKOUT_DURATION_MINUTES:-30}"
+      
+      # Logging settings (flat format for compatibility)
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      LOG_FORMAT: "${LOG_FORMAT:-json}"
+      LOG_FILE_ENABLED: "${LOG_FILE_ENABLED:-false}"
+      LOG_FILE_PATH: "${LOG_FILE_PATH:-./logs/family-portfolio.log}"
+      LOG_MAX_FILE_SIZE: "${LOG_MAX_FILE_SIZE:-10485760}"
+      LOG_BACKUP_COUNT: "${LOG_BACKUP_COUNT:-5}"
+      
+      # File upload settings (flat format for compatibility)
+      UPLOAD_PATH: "${UPLOAD_PATH:-./uploads}"
+      MAX_FILE_SIZE: "${MAX_FILE_SIZE:-10485760}"
+      ALLOWED_EXTENSIONS: "${ALLOWED_EXTENSIONS:-.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx}"
+      
+      # Redis settings (flat format for compatibility)
+      REDIS_URL: "${REDIS_URL:-redis://localhost:6379/0}"
+      REDIS_MAX_CONNECTIONS: "${REDIS_MAX_CONNECTIONS:-50}"
+      REDIS_SOCKET_TIMEOUT: "${REDIS_SOCKET_TIMEOUT:-5}"
+      REDIS_RETRY_ON_TIMEOUT: "${REDIS_RETRY_ON_TIMEOUT:-true}"
+      
+      # CORS settings
+      CORS_ORIGINS: "${CORS_ORIGINS:-http://localhost:3000,http://family_portfolio_frontend:80}"
+      CORS_ALLOW_CREDENTIALS: "${CORS_ALLOW_CREDENTIALS:-true}"
+      CORS_ALLOW_METHODS: "${CORS_ALLOW_METHODS:-GET,POST,PUT,DELETE,OPTIONS}"
+      CORS_ALLOW_HEADERS: "${CORS_ALLOW_HEADERS:-*}"
+      
+      # Feature flags
+      ENABLE_METRICS: "${ENABLE_METRICS:-true}"
+      ENABLE_TRACING: "${ENABLE_TRACING:-true}"
+      ENABLE_RATE_LIMITING: "${ENABLE_RATE_LIMITING:-false}"
+      
+      PYTHONPATH: /app
+    volumes:
+      - ./:/app
+      - uploads_data:/app/uploads
+      - ./logs:/app/logs
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    networks:
+      - family_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  uploads_data:
+    driver: local
+
+networks:
+  family_network:
+    external: true

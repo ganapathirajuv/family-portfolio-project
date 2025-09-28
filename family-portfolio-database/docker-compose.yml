@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: family_portfolio_database
+    environment:
+      POSTGRES_DB: "${DB_NAME:-family_portfolio}"
+      POSTGRES_USER: "${DB_USER:-portfolio_admin}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-secure_password_123}"
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+      - ./backups:/backups
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - family_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-portfolio_admin} -d ${DB_NAME:-family_portfolio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c pg_stat_statements.max=10000
+        -c pg_stat_statements.track=all
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  family_network:
+    external: true
