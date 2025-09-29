@@ -385,6 +385,7 @@ const GenealogyPage = memo(() => {
     <GenealogyView
       theme={theme}
       members={controller.members}
+      treeData={controller.treeData}
       loading={controller.loading}
       error={controller.error}
       selectedMember={controller.selectedMember}

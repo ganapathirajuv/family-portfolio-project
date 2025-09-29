@@ -49,6 +49,8 @@ CREATE TABLE family_members (
     biography TEXT,
     occupation VARCHAR(255),
     education VARCHAR(255),
+    notes TEXT,
+    parent_id INTEGER REFERENCES family_members(id),
     profile_photo_id INTEGER,
     privacy_level VARCHAR(20) DEFAULT 'family' CHECK (privacy_level IN ('public', 'family', 'private')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -249,44 +251,40 @@ VALUES (
     TRUE
 );
 
--- Insert sample family members
-INSERT INTO family_members (first_name, last_name, birth_date, birth_location, gender, biography, occupation) VALUES
-('John', 'Smith', '1950-03-15', 'New York, NY', 'male', 'Patriarch of the Smith family. Worked as an engineer for 40 years.', 'Engineer'),
-('Mary', 'Smith', '1952-07-22', 'Boston, MA', 'female', 'Loving mother and teacher. Dedicated her life to education.', 'Teacher'),
-('Robert', 'Smith', '1975-11-08', 'Chicago, IL', 'male', 'First son of John and Mary. Software developer and family tech enthusiast.', 'Software Developer'),
-('Susan', 'Johnson', '1978-04-12', 'Denver, CO', 'female', 'Roberts wife. Works as a nurse and loves photography.', 'Nurse'),
-('Emily', 'Smith', '2005-09-30', 'Seattle, WA', 'female', 'Daughter of Robert and Susan. High school student with interests in art.', 'Student'),
-('Michael', 'Smith', '2008-01-18', 'Seattle, WA', 'male', 'Son of Robert and Susan. Loves sports and video games.', 'Student');
+-- Insert sample family members with proper parent_id relationships
+INSERT INTO family_members (first_name, last_name, birth_date, birth_location, gender, biography, occupation, parent_id) VALUES
+('John', 'Smith', '1950-03-15', 'New York, NY', 'male', 'Patriarch of the Smith family. Worked as an engineer for 40 years.', 'Engineer', NULL),
+('Mary', 'Smith', '1952-07-22', 'Boston, MA', 'female', 'Loving mother and teacher. Dedicated her life to education.', 'Teacher', NULL),
+('Robert', 'Smith', '1975-11-08', 'Chicago, IL', 'male', 'First son of John and Mary. Software developer and family tech enthusiast.', 'Software Developer', 1),
+('Susan', 'Johnson', '1978-04-12', 'Denver, CO', 'female', 'Roberts wife. Works as a nurse and loves photography.', 'Nurse', NULL),
+('James', 'Smith', '1977-09-22', 'Chicago, IL', 'male', 'Second son of John and Mary. Works as a doctor and enjoys traveling.', 'Doctor', 1),
+('Sarah', 'Smith', '1980-12-10', 'Boston, MA', 'female', 'Daughter of John and Mary. Teacher like her mother and loves reading.', 'Teacher', 1);
 
 -- Insert family relationships
 INSERT INTO relationships (person1_id, person2_id, relationship_type, start_date, notes) VALUES
 -- John and Mary as spouses
 (1, 2, 'spouse', '1972-06-15', 'Married in a beautiful ceremony in Boston'),
 -- Parent-child relationships
-(1, 3, 'parent_child', '1975-11-08', 'Father to son'),
-(2, 3, 'parent_child', '1975-11-08', 'Mother to son'),
+(1, 3, 'parent_child', '1975-11-08', 'Father to son Robert'),
+(2, 3, 'parent_child', '1975-11-08', 'Mother to son Robert'),
+(1, 5, 'parent_child', '1977-09-22', 'Father to son James'),
+(2, 5, 'parent_child', '1977-09-22', 'Mother to son James'),
+(1, 6, 'parent_child', '1980-12-10', 'Father to daughter Sarah'),
+(2, 6, 'parent_child', '1980-12-10', 'Mother to daughter Sarah'),
 -- Robert and Susan as spouses
 (3, 4, 'spouse', '2003-08-20', 'Met in college, married after 5 years of dating'),
--- Robert and Susan as parents to Emily and Michael
-(3, 5, 'parent_child', '2005-09-30', 'Father to daughter'),
-(4, 5, 'parent_child', '2005-09-30', 'Mother to daughter'),
-(3, 6, 'parent_child', '2008-01-18', 'Father to son'),
-(4, 6, 'parent_child', '2008-01-18', 'Mother to son'),
 -- Sibling relationships
-(5, 6, 'sibling', '2008-01-18', 'Sister and brother'),
--- Grandparent relationships
-(1, 5, 'grandparent_grandchild', '2005-09-30', 'Grandfather to granddaughter'),
-(2, 5, 'grandparent_grandchild', '2005-09-30', 'Grandmother to granddaughter'),
-(1, 6, 'grandparent_grandchild', '2008-01-18', 'Grandfather to grandson'),
-(2, 6, 'grandparent_grandchild', '2008-01-18', 'Grandmother to grandson');
+(3, 5, 'sibling', '1977-09-22', 'Brothers'),
+(3, 6, 'sibling', '1980-12-10', 'Brother and sister'),
+(5, 6, 'sibling', '1980-12-10', 'Brother and sister');
 
 -- Insert sample events
 INSERT INTO events (title, description, event_type, event_date, location) VALUES
 ('John and Mary Wedding', 'Beautiful wedding ceremony with family and friends', 'marriage', '1972-06-15', 'Boston, MA'),
 ('Robert Birth', 'First child born to John and Mary', 'birth', '1975-11-08', 'Chicago, IL'),
+('James Birth', 'Second son born to John and Mary', 'birth', '1977-09-22', 'Chicago, IL'),
+('Sarah Birth', 'Daughter born to John and Mary', 'birth', '1980-12-10', 'Boston, MA'),
 ('Robert and Susan Wedding', 'Outdoor wedding ceremony in the mountains', 'marriage', '2003-08-20', 'Denver, CO'),
-('Emily Birth', 'First daughter born to Robert and Susan', 'birth', '2005-09-30', 'Seattle, WA'),
-('Michael Birth', 'Son born to Robert and Susan', 'birth', '2008-01-18', 'Seattle, WA'),
 ('Smith Family Reunion 2023', 'Annual family gathering with all relatives', 'reunion', '2023-07-15', 'Seattle, WA');
 
 -- Link people to events
@@ -298,17 +296,17 @@ INSERT INTO event_people (event_id, person_id, role) VALUES
 (2, 3, 'child'),
 (2, 1, 'father'),
 (2, 2, 'mother'),
+-- James birth
+(3, 5, 'child'),
+(3, 1, 'father'),
+(3, 2, 'mother'),
+-- Sarah birth
+(4, 6, 'child'),
+(4, 1, 'father'),
+(4, 2, 'mother'),
 -- Robert and Susan wedding
-(3, 3, 'groom'),
-(3, 4, 'bride'),
--- Emily birth
-(4, 5, 'child'),
-(4, 3, 'father'),
-(4, 4, 'mother'),
--- Michael birth
-(5, 6, 'child'),
-(5, 3, 'father'),
-(5, 4, 'mother'),
+(5, 3, 'groom'),
+(5, 4, 'bride'),
 -- Family reunion - all family members
 (6, 1, 'attendee'),
 (6, 2, 'attendee'),

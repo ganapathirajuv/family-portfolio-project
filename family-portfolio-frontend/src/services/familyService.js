@@ -57,7 +57,7 @@ export async function getFamilyMembers({ skip = 0, limit = 50, search = null } =
   const data = await res.json();
 
   // Map backend fields to frontend-friendly shape, then attach fallback avatars
-  const mapped = (data || []).map(/** @param {ApiMember} m */ (m) => ({
+  const mapped = (data.items || []).map(/** @param {ApiMember} m */ (m) => ({
     id: m.id,
     firstName: m.first_name,
     lastName: m.last_name,
@@ -86,6 +86,78 @@ export async function getFamilyMembers({ skip = 0, limit = 50, search = null } =
     return member;
   });
 
+  cache.set(cacheKey, result);
+  return result;
+}
+
+/**
+ * Fetch family tree structure from the backend.
+ * @param {number} [rootId] - Optional root member ID. If not provided, returns all root members
+ * @returns {Promise<Array<Object>>}
+ */
+export async function getFamilyTree(rootId = null) {
+  const cacheKey = `tree:${rootId || 'all'}`;
+  // Use a window-scoped cache when available (browser). Guard for SSR.
+  const cacheHost = (typeof window !== 'undefined') ? window : {};
+  if (!cacheHost.__familyServiceCache) cacheHost.__familyServiceCache = new Map();
+  const cache = cacheHost.__familyServiceCache;
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
+
+  const params = new URLSearchParams();
+  if (rootId) params.set('root_id', String(rootId));
+
+  // Use REACT_APP_API_URL when provided (set at build time) otherwise use relative path
+  const envBase = typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL;
+  const base = (envBase && String(envBase)) || '/api/v1';
+  const normalizedBase = base.replace(/\/$/, '');
+  const url = `${normalizedBase}/family-members/tree?${params.toString()}`;
+
+  const res = await fetch(url, {
+    headers: { 'Accept': 'application/json' }
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to fetch family tree: ${res.status} ${res.statusText} ${text}`);
+  }
+
+  const data = await res.json();
+
+  // Map the hierarchical tree structure to frontend-friendly shape
+  const avatars = ['/images/avatar1.svg', '/images/avatar2.svg', '/images/avatar3.svg'];
+  
+  function mapTreeNode(node) {
+    const member = node.member;
+    const mapped = {
+      id: member.id,
+      firstName: member.first_name,
+      lastName: member.last_name,
+      fullName: member.full_name || `${member.first_name}${member.last_name ? ' ' + member.last_name : ''}`,
+      birthDate: member.birth_date,
+      deathDate: member.death_date,
+      birthLocation: member.birth_location,
+      gender: member.gender,
+      biography: member.biography,
+      occupation: member.occupation,
+      parentId: member.parent_id ?? null,
+      photoUrl: member.photo_url ?? null,
+      isDeceased: Boolean(member.is_deceased),
+      children: (node.children || []).map(mapTreeNode)
+    };
+
+    // Attach deterministic fallback avatar if no photo
+    if (!mapped.photoUrl) {
+      const key = typeof mapped.id === 'number' ? mapped.id : 0;
+      mapped.photoUrl = avatars[Math.abs(key) % avatars.length];
+      mapped._fallbackPhoto = true;
+    }
+
+    return mapped;
+  }
+
+  const result = data.map(mapTreeNode);
   cache.set(cacheKey, result);
   return result;
 }

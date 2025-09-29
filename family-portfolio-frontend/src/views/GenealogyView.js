@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import GenealogyTree from '../components/GenealogyTree';
 import PersonDrawer from '../components/PersonDrawer';
 
-const GenealogyView = memo(function GenealogyView({ theme, members, loading, error, selectedMember, onSelect, onCloseDrawer, onEdit }) {
+const GenealogyView = memo(function GenealogyView({ theme, members, treeData, loading, error, selectedMember, onSelect, onCloseDrawer, onEdit }) {
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className={`rounded-3xl p-8 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/70'} backdrop-blur-sm border ${theme === 'dark' ? 'border-gray-700/50' : 'border-white/60'} shadow-2xl`}>
@@ -19,7 +19,7 @@ const GenealogyView = memo(function GenealogyView({ theme, members, loading, err
 
         {!loading && !error && (
           <div>
-            <GenealogyTree members={members} onSelect={onSelect} />
+            <GenealogyTree treeData={treeData} members={members} onSelect={onSelect} />
           </div>
         )}
       </div>

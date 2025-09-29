@@ -33,7 +33,7 @@ class FamilyMember(Base):
     occupation = Column(String(255))
     education = Column(String(255))
     # Free-form notes field (optional)
-    notes = Column(Text)
+    #notes = Column(Text)
     # Parent relationship (self-referential FK)
     parent_id = Column(Integer, ForeignKey('family_members.id'), nullable=True)
     
